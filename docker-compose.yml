@@ -21,7 +21,7 @@ services:
     restart: always
     command: --log-dir /app/logs
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - ./data:/data
       - ./logs:/app/logs
@@ -79,6 +79,31 @@ services:
 #    ports:
 #      - "3306:3306"  # Uncomment if you need to access MySQL from outside Docker
 
+  # Daily Quota Reset Cron Job
+  # Resets all subscription tokens to their daily limit at 00:00
+  cron:
+    image: alpine:latest
+    container_name: banana-cron
+    restart: always
+    environment:
+      # Frontend URL (adjust if using different host/port)
+      - FRONTEND_URL=http://host.docker.internal:3000
+      # Secret for API authentication (must match CRON_SECRET in front/.env.local)
+      - CRON_SECRET=BananaCronSecret2025
+      - TZ=Asia/Shanghai
+    command: >
+      sh -c "
+        apk add --no-cache curl tzdata &&
+        echo '0 0 * * * curl -s -X POST \"$${FRONTEND_URL}/api/admin/reset-daily-quota\" -H \"Authorization: Bearer $${CRON_SECRET}\" -H \"Content-Type: application/json\" >> /var/log/cron.log 2>&1' > /etc/crontabs/root &&
+        echo 'Cron job installed. Waiting for 00:00 to reset daily quotas...' &&
+        crond -f -l 2
+      "
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - cron_logs:/var/log
+
 volumes:
   pg_data:
+  cron_logs:
 #  mysql_data:
