@@ -1,23 +1,26 @@
-# New-API Docker Compose Configuration
+# Banana API Docker Compose Configuration
 # 
 # Quick Start:
-#   1. docker-compose up -d
-#   2. Access at http://localhost:3000
+#   1. cp .env.example .env && edit .env
+#   2. docker-compose up -d
+#   3. Access at http://localhost:3001
 #
 # Using MySQL instead of PostgreSQL:
-#   1. Comment out the postgres service and SQL_DSN line 15
-#   2. Uncomment the mysql service and SQL_DSN line 16
-#   3. Uncomment mysql in depends_on (line 28)
-#   4. Uncomment mysql_data in volumes section (line 64)
+#   1. Comment out the postgres service and SQL_DSN
+#   2. Uncomment the mysql service and SQL_DSN
+#   3. Uncomment mysql in depends_on
+#   4. Uncomment mysql_data in volumes section
 #
 # ⚠️  IMPORTANT: Change all default passwords before deploying to production!
 
-version: '3.4' # For compatibility with older Docker versions
+version: '3.8'
 
 services:
-  new-api:
+  banana-api:
     image: calciumion/new-api:latest
-    container_name: new-api
+    # Or build from source:
+    # build: .
+    container_name: banana-api
     restart: always
     command: --log-dir /app/logs
     ports:
@@ -26,84 +29,67 @@ services:
       - ./data:/data
       - ./logs:/app/logs
     environment:
-      - SQL_DSN=postgresql://root:123456@postgres:5432/new-api # ⚠️ IMPORTANT: Change the password in production!
-#      - SQL_DSN=root:123456@tcp(mysql:3306)/new-api  # Point to the mysql service, uncomment if using MySQL
+      - SQL_DSN=${SQL_DSN:-postgresql://root:123456@postgres:5432/banana}
+      # - SQL_DSN=root:123456@tcp(mysql:3306)/banana  # Uncomment for MySQL
       - REDIS_CONN_STRING=redis://redis
-      - TZ=Asia/Shanghai
-      - ERROR_LOG_ENABLED=true # 是否启用错误日志记录 (Whether to enable error log recording)
-      - BATCH_UPDATE_ENABLED=true  # 是否启用批量更新 (Whether to enable batch update)
-#      - STREAMING_TIMEOUT=300  # 流模式无响应超时时间，单位秒，默认120秒，如果出现空补全可以尝试改为更大值 （Streaming timeout in seconds, default is 120s. Increase if experiencing empty completions）
-#      - SESSION_SECRET=random_string  # 多机部署时设置，必须修改这个随机字符串！！ （multi-node deployment, set this to a random string!!!!!!!）
-#      - SYNC_FREQUENCY=60  # Uncomment if regular database syncing is needed
-#      - GOOGLE_ANALYTICS_ID=G-XXXXXXXXXX  # Google Analytics 的测量 ID (Google Analytics Measurement ID)
-#      - UMAMI_WEBSITE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx  # Umami 网站 ID (Umami Website ID)
-#      - UMAMI_SCRIPT_URL=https://analytics.umami.is/script.js  # Umami 脚本 URL，默认为官方地址 (Umami Script URL, defaults to official URL)
-
+      - TZ=${TZ:-Asia/Shanghai}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - ERROR_LOG_ENABLED=true
+      - BATCH_UPDATE_ENABLED=true
+      # - STREAMING_TIMEOUT=300
+      # - SYNC_FREQUENCY=60
     depends_on:
       - redis
       - postgres
-#      - mysql  # Uncomment if using MySQL
+      # - mysql  # Uncomment if using MySQL
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status | grep -o '\"success\":\\s*true' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - banana-network
 
   redis:
     image: redis:latest
-    container_name: redis
+    container_name: banana-redis
     restart: always
+    networks:
+      - banana-network
 
   postgres:
-    image: postgres:15
-    container_name: postgres
+    image: postgres:15-alpine
+    container_name: banana-db
     restart: always
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: 123456  # ⚠️ IMPORTANT: Change this password in production!
-      POSTGRES_DB: new-api
+      POSTGRES_USER: ${POSTGRES_USER:-root}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+      POSTGRES_DB: ${POSTGRES_DB:-banana}
     volumes:
       - pg_data:/var/lib/postgresql/data
-#    ports:
-#      - "5432:5432"  # Uncomment if you need to access PostgreSQL from outside Docker
+    # ports:
+    #   - "5432:5432"  # Uncomment to expose PostgreSQL
+    networks:
+      - banana-network
 
 #  mysql:
 #    image: mysql:8.2
-#    container_name: mysql
+#    container_name: banana-mysql
 #    restart: always
 #    environment:
-#      MYSQL_ROOT_PASSWORD: 123456  # ⚠️ IMPORTANT: Change this password in production!
-#      MYSQL_DATABASE: new-api
+#      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+#      MYSQL_DATABASE: ${MYSQL_DATABASE:-banana}
 #    volumes:
 #      - mysql_data:/var/lib/mysql
-#    ports:
-#      - "3306:3306"  # Uncomment if you need to access MySQL from outside Docker
+#    # ports:
+#    #   - "3306:3306"
+#    networks:
+#      - banana-network
 
-  # Daily Quota Reset Cron Job
-  # Resets all subscription tokens to their daily limit at 00:00
-  cron:
-    image: alpine:latest
-    container_name: banana-cron
-    restart: always
-    environment:
-      # Frontend URL (adjust if using different host/port)
-      - FRONTEND_URL=http://host.docker.internal:3000
-      # Secret for API authentication (must match CRON_SECRET in front/.env.local)
-      - CRON_SECRET=BananaCronSecret2025
-      - TZ=Asia/Shanghai
-    command: >
-      sh -c "
-        apk add --no-cache curl tzdata &&
-        echo '0 0 * * * curl -s -X POST \"$${FRONTEND_URL}/api/admin/reset-daily-quota\" -H \"Authorization: Bearer $${CRON_SECRET}\" -H \"Content-Type: application/json\" >> /var/log/cron.log 2>&1' > /etc/crontabs/root &&
-        echo 'Cron job installed. Waiting for 00:00 to reset daily quotas...' &&
-        crond -f -l 2
-      "
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - cron_logs:/var/log
+networks:
+  banana-network:
+    driver: bridge
 
 volumes:
   pg_data:
-  cron_logs:
 #  mysql_data:
