@@ -252,7 +252,7 @@ func SendEmailVerification(c *gin.Context) {
 	}
 	code := common.GenerateVerificationCode(6)
 	common.RegisterVerificationCodeWithKey(email, code, common.EmailVerificationPurpose)
-	subject := "香蕉API - 邮箱验证"
+	subject := "Banana AI - 邮箱验证"
 	content := fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head>
@@ -267,14 +267,14 @@ func SendEmailVerification(c *gin.Context) {
           <!-- Header -->
           <tr>
             <td style="padding:32px 40px 24px; text-align:center; border-bottom:1px solid #e4e4e7;">
-              <h1 style="margin:0; font-size:24px; font-weight:700; color:#18181b;">🍌 香蕉API</h1>
+              <h1 style="margin:0; font-size:24px; font-weight:700; color:#18181b;">🍌 Banana AI</h1>
             </td>
           </tr>
           <!-- Content -->
           <tr>
             <td style="padding:32px 40px;">
               <h2 style="margin:0 0 16px; font-size:20px; font-weight:600; color:#18181b;">邮箱验证</h2>
-              <p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#52525b;">您好，您正在进行香蕉API账户的邮箱验证。请使用以下验证码完成验证：</p>
+              <p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#52525b;">您好，您正在进行 Banana AI 账户的邮箱验证。请使用以下验证码完成验证：</p>
               <div style="background-color:#fafafa; border:2px dashed #e4e4e7; border-radius:8px; padding:20px; text-align:center; margin-bottom:24px;">
                 <span style="font-size:32px; font-weight:700; letter-spacing:4px; color:#18181b;">%s</span>
               </div>
@@ -286,8 +286,12 @@ func SendEmailVerification(c *gin.Context) {
           <tr>
             <td style="padding:24px 40px; background-color:#fafafa; border-radius:0 0 12px 12px; border-top:1px solid #e4e4e7;">
               <p style="margin:0; font-size:12px; color:#a1a1aa; text-align:center;">此邮件由系统自动发送，请勿直接回复。</p>
-              <p style="margin:8px 0 0; font-size:12px; color:#a1a1aa; text-align:center;">© 香蕉API - 专业的 AI 接口服务</p>
-              <p style="margin:8px 0 0; font-size:12px; text-align:center;"><a href="https://api.ba-nana.com" style="color:#3b82f6; text-decoration:none;">api.ba-nana.com</a></p>
+              <p style="margin:8px 0 0; font-size:12px; color:#a1a1aa; text-align:center;">© Banana AI</p>
+              <p style="margin:12px 0 0; font-size:12px; text-align:center;">
+                <a href="https://codex.ba-nana.com" style="color:#3b82f6; text-decoration:none;">Codex 中转站</a>
+                <span style="color:#d4d4d8; margin:0 8px;">|</span>
+                <a href="https://nano.ba-nana.com" style="color:#3b82f6; text-decoration:none;">AI 生图</a>
+              </p>
             </td>
           </tr>
         </table>
@@ -327,7 +331,7 @@ func SendPasswordResetEmail(c *gin.Context) {
 	code := common.GenerateVerificationCode(0)
 	common.RegisterVerificationCodeWithKey(email, code, common.PasswordResetPurpose)
 	link := fmt.Sprintf("%s/user/reset?email=%s&token=%s", system_setting.ServerAddress, email, code)
-	subject := "香蕉API - 密码重置"
+	subject := "Banana AI - 密码重置"
 	content := fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <head>
@@ -342,7 +346,7 @@ func SendPasswordResetEmail(c *gin.Context) {
           <!-- Header -->
           <tr>
             <td style="padding:32px 40px 24px; text-align:center; border-bottom:1px solid #e4e4e7;">
-              <h1 style="margin:0; font-size:24px; font-weight:700; color:#18181b;">🍌 香蕉API</h1>
+              <h1 style="margin:0; font-size:24px; font-weight:700; color:#18181b;">🍌 Banana AI</h1>
             </td>
           </tr>
           <!-- Content -->
@@ -362,8 +366,12 @@ func SendPasswordResetEmail(c *gin.Context) {
           <tr>
             <td style="padding:24px 40px; background-color:#fafafa; border-radius:0 0 12px 12px; border-top:1px solid #e4e4e7;">
               <p style="margin:0; font-size:12px; color:#a1a1aa; text-align:center;">此邮件由系统自动发送，请勿直接回复。</p>
-              <p style="margin:8px 0 0; font-size:12px; color:#a1a1aa; text-align:center;">© 香蕉API - 专业的 AI 接口服务</p>
-              <p style="margin:8px 0 0; font-size:12px; text-align:center;"><a href="https://api.ba-nana.com" style="color:#3b82f6; text-decoration:none;">api.ba-nana.com</a></p>
+              <p style="margin:8px 0 0; font-size:12px; color:#a1a1aa; text-align:center;">© Banana AI</p>
+              <p style="margin:12px 0 0; font-size:12px; text-align:center;">
+                <a href="https://codex.ba-nana.com" style="color:#3b82f6; text-decoration:none;">Codex 中转站</a>
+                <span style="color:#d4d4d8; margin:0 8px;">|</span>
+                <a href="https://nano.ba-nana.com" style="color:#3b82f6; text-decoration:none;">AI 生图</a>
+              </p>
             </td>
           </tr>
         </table>
